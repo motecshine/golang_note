@@ -1,7 +1,10 @@
 package main
 
 import (
-	"golang_note/goroutines"
+	"flag"
+	"golang_note/websocket"
+	"log"
+	"net/http"
 )
 
 func main() {
@@ -14,13 +17,20 @@ func main() {
 	// <-done // 阻塞， 知道消费者发回结束信号
 
 	// goroutine
-	var Channel chan int = make(chan int)
+	// var Channel chan int = make(chan int)
 
-	go goroutines.Loop(Channel)
+	// go goroutines.Loop(Channel)
+	// <-Channel
 
-	go goroutines.Loop(Channel)
-	<-Channel
+	// go goroutines.Loop(Channel)
 
-	<-Channel
+	// <-Channel
+
+	// consumer.NewClient()
+
+	// consumer.ExampleSub()
+	var addr = flag.String("addr", "localhost:8080", "http service address")
+	http.HandleFunc("/echo", websocket.Server)
+	log.Fatal(http.ListenAndServe(*addr, nil))
 
 }
