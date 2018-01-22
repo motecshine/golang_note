@@ -7,21 +7,21 @@ import (
 	"github.com/go-redis/redis"
 )
 
-var client *redis.Client
+var Client *redis.Client
 
 func NewClient() {
-	client = redis.NewClient(&redis.Options{
+	Client = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
 
-	pong, err := client.Ping().Result()
+	pong, err := Client.Ping().Result()
 	fmt.Println(pong, err)
 }
 
 func ExampleSub() {
-	pubsub := client.Subscribe("mychannel1")
+	pubsub := Client.Subscribe("mychannel1")
 	defer pubsub.Close()
 
 	// Wait for subscription to be created before publishing message.

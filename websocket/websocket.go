@@ -4,12 +4,23 @@ import (
 	"log"
 	"net/http"
 
+	"golang_note/consumer"
+
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{} // use default options
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(*http.Request) bool {
+		return true
+	},
+} // use default options
 
 func Server(w http.ResponseWriter, r *http.Request) {
+	consumer.NewClient()
+
+	sub := consumer.Client.Subscribe("mychannel1")
+	defer sub.Close()
+
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
@@ -17,13 +28,11 @@ func Server(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 	for {
-		mt, message, err := c.ReadMessage()
+		msg, err := sub.ReceiveMessage()
 		if err != nil {
-			log.Println("read:", err)
-			break
+			panic(err)
 		}
-		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
+		err = c.WriteMessage(1, []byte(msg.Payload))
 		if err != nil {
 			log.Println("write:", err)
 			break
