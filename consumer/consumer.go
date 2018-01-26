@@ -10,13 +10,9 @@ import (
 var Client *redis.Client
 
 func NewClient() {
-<<<<<<< HEAD
-	client = redis.NewClient(&redis.Options{
-		Addr:     "localhost:32768",
-=======
+
 	Client = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
->>>>>>> 39ae4714135b3fc844f7b9eeafd9828ed1c8ce50
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
@@ -25,13 +21,10 @@ func NewClient() {
 	fmt.Println(pong, err)
 }
 
-<<<<<<< HEAD
-func ExampleSub() string {
-	pubsub := client.Subscribe("mychannel1")
-=======
+
 func ExampleSub() {
 	pubsub := Client.Subscribe("mychannel1")
->>>>>>> 39ae4714135b3fc844f7b9eeafd9828ed1c8ce50
+
 	defer pubsub.Close()
 
 	// Wait for subscription to be created before publishing message.
