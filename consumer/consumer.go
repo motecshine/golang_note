@@ -11,7 +11,7 @@ var client *redis.Client
 
 func NewClient() {
 	client = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "localhost:32768",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
@@ -20,7 +20,7 @@ func NewClient() {
 	fmt.Println(pong, err)
 }
 
-func ExampleSub() {
+func ExampleSub() string {
 	pubsub := client.Subscribe("mychannel1")
 	defer pubsub.Close()
 
@@ -37,4 +37,5 @@ func ExampleSub() {
 	}
 
 	fmt.Println(msg.Channel, msg.Payload)
+	return  msg.Payload
 }

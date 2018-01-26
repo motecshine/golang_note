@@ -1,10 +1,11 @@
 package main
 
 import (
-	"flag"
+    "flag"
 	"golang_note/websocket"
 	"log"
 	"net/http"
+	"golang_note/consumer"
 )
 
 func main() {
@@ -26,9 +27,9 @@ func main() {
 
 	// <-Channel
 
-	// consumer.NewClient()
+	consumer.NewClient()
 
-	// consumer.ExampleSub()
+	consumer.ExampleSub()
 	var addr = flag.String("addr", "localhost:8080", "http service address")
 	http.HandleFunc("/echo", websocket.Server)
 	log.Fatal(http.ListenAndServe(*addr, nil))
