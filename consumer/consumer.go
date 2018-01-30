@@ -21,7 +21,6 @@ func NewClient() {
 	fmt.Println(pong, err)
 }
 
-
 func ExampleSub() {
 	pubsub := Client.Subscribe("mychannel1")
 
@@ -40,5 +39,4 @@ func ExampleSub() {
 	}
 
 	fmt.Println(msg.Channel, msg.Payload)
-	return  msg.Payload
 }
