@@ -1,7 +1,9 @@
 package hashtable
 
 import (
+	"fmt"
 	"hash/fnv"
+	"sync"
 )
 
 const (
@@ -9,6 +11,7 @@ const (
 )
 
 var KeyChains *KeyChainNode
+var Mask uint32 = 8 // 当resize hashtable 时这个值也会跟随 ChainNodeSize 变化
 
 type Bucket struct {
 	Data       interface{}
@@ -23,12 +26,14 @@ type KeyChainNode struct {
 	Refcount         uint32 //计算冲突量有多少 默认是0
 }
 
-type Hashtable struct{}
+type Hashtable struct {
+	mu sync.RWMutex
+}
 
 func HashingKey(str string) uint32 {
 	hashModel := fnv.New32a()
 	hashModel.Write([]byte(str))
-	return hashModel.Sum32() % ChainNodeSize
+	return hashModel.Sum32() % Mask
 }
 
 func init() {
@@ -38,6 +43,8 @@ func init() {
 /* 初始化一个长度为ChainNodeSize的node */
 func InitKeyChains() *KeyChainNode {
 	var prevNode, tmpNode *KeyChainNode
+	var locking sync.RWMutex
+	locking.Lock()
 	for i := ChainNodeSize; i >= 1; i-- {
 		if i == ChainNodeSize {
 			tmpNode = &KeyChainNode{
@@ -56,6 +63,7 @@ func InitKeyChains() *KeyChainNode {
 		}
 		prevNode = tmpNode
 	}
+	locking.Unlock()
 	return tmpNode
 }
 
@@ -71,43 +79,73 @@ func FindKeyChainNode(key uint32, KeyChains *KeyChainNode) *KeyChainNode {
 }
 
 func (hashtable *Hashtable) Add(key string, value interface{}) {
-
+	defer hashtable.mu.Unlock()
 	mapKey := HashingKey(key)
-
-	node := FindKeyChainNode(mapKey, InitKeyChains())
-	// 不冲突
+	node := FindKeyChainNode(mapKey, KeyChains)
+	hashtable.mu.Lock()
 	if node.Refcount == 0 {
 		node.Bucket = &Bucket{
 			Key:        key,
 			Data:       value,
 			NextBucket: nil,
 		}
+		// 当前node的bucket个数
+		node.Refcount++
 	} else {
-		//
+		tmpNode := node
 		for {
-			if node.Bucket.NextBucket == nil {
-				node.Bucket.NextBucket = &Bucket{
+			// 如果 key相同 找到bucket 相同的key 然后覆盖值
+			if tmpNode.Bucket.NextBucket == nil {
+				tmpNode.Bucket.NextBucket = &Bucket{
 					Key:        key,
 					Data:       value,
 					NextBucket: nil,
 				}
+				// 当前node的bucket个数
+				tmpNode.Refcount++
 				break
 			}
-			node.Bucket = node.Bucket.NextBucket
+			tmpNode.Bucket = tmpNode.Bucket.NextBucket
 		}
 	}
-	// 当前node的bucket个数
-	node.Refcount++
+
 }
 
 func (hashtable *Hashtable) Delete(key string, value interface{}) interface{} {
 	return nil
 }
 
-func (hashtable *Hashtable) Update(key string, newValue interface{}) interface{} {
-	return nil
+func (hashtable *Hashtable) Update(key string, newValue interface{}) {
+	mapKey := HashingKey(key)
+	node := FindKeyChainNode(mapKey, KeyChains)
+	tmpNode := node.Bucket
+	for {
+		// 如果 key相同 找到bucket 相同的key 然后覆盖值
+		if tmpNode.Key == key {
+			tmpNode.Data = newValue
+			break
+		}
+
+		tmpNode = tmpNode.NextBucket
+	}
 }
 
 func (hashtable *Hashtable) Get(key string) interface{} {
+	mapKey := HashingKey(key)
+	node := FindKeyChainNode(mapKey, KeyChains)
+	tmpNode := node.Bucket
+
+
+	for {
+		if tmpNode.Key == key {
+			return tmpNode.Data
+		}
+		// 这里的指针没有被reset
+		tmpNode = tmpNode.NextBucket
+
+		if tmpNode == nil {
+			fmt.Println("草拟吗")
+		}
+	}
 	return nil
 }

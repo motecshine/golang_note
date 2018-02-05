@@ -1,8 +1,8 @@
 package main
 
 import (
-	"golang_note/hashtable"
 	"fmt"
+	"golang_note/hashtable"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	// var addr = flag.String("addr", "localhost:8080", "http service address")
 	// http.HandleFunc("/echo", websocket.Server)
 	// log.Fatal(http.ListenAndServe(*addr, nil))
-    // Link := link.InitStack()
+	// Link := link.InitStack()
 	// Link = link.Push(4, Link)
 	// Link = link.Push(5, Link)
 	// link.PrintLink(Link)
@@ -41,5 +41,8 @@ func main() {
 	// link.PrintLink(Link)*/
 	h := new(hashtable.Hashtable)
 	h.Add("test", "value")
-	fmt.Println(h)
+	h.Add("test2", "value1")
+	h.Update("test2", "value2")
+	h.Add("hhh", "哈哈哈啊")
+	fmt.Println(h, h.Get("test"), h.Get("test2"), h.Get("hhh"))
 }
