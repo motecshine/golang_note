@@ -1,15 +1,14 @@
 package hashtable
 
 import (
-	"fmt"
 	"hash/fnv"
 	"sync"
+	"fmt"
+	"log"
 )
 
-const (
-	ChainNodeSize uint32 = 8 // 假设Key单项列表默认的长度是8个Node
-)
 
+var ChainNodeSize uint32 = 8 // 假设Key单项列表默认的长度是8个Node
 var KeyChains *KeyChainNode
 var Mask uint32 = 8 // 当resize hashtable 时这个值也会跟随 ChainNodeSize 变化
 
@@ -82,6 +81,9 @@ func (hashtable *Hashtable) Add(key string, value interface{}) {
 	defer hashtable.mu.Unlock()
 	mapKey := HashingKey(key)
 	node := FindKeyChainNode(mapKey, KeyChains)
+	if node == nil {
+		log.Fatal("cant find node")
+	}
 	hashtable.mu.Lock()
 	if node.Refcount == 0 {
 		node.Bucket = &Bucket{
@@ -101,7 +103,7 @@ func (hashtable *Hashtable) Add(key string, value interface{}) {
 					Data:       value,
 					NextBucket: nil,
 				}
-				// 当前node的bucket个数
+				// 当前node的bucket个数 即有多少冲突
 				tmpNode.Refcount++
 				break
 			}
@@ -111,41 +113,66 @@ func (hashtable *Hashtable) Add(key string, value interface{}) {
 
 }
 
-func (hashtable *Hashtable) Delete(key string, value interface{}) interface{} {
-	return nil
+func (hashtable *Hashtable) Delete(key string) bool {
+	mapKey := HashingKey(key)
+	node := FindKeyChainNode(mapKey, KeyChains)
+	if node == nil {
+		log.Fatal("cant find node\n")
+	}
+	bucket := node.Bucket
+	tmpBucket := bucket
+	for {
+		fmt.Println(tmpBucket)
+		// 要删除的bucket在链表的头部
+		if tmpBucket.Key == key {
+			break
+		}
+
+		// 要删除的bucket在链表的中间或尾部
+		if tmpBucket.NextBucket != nil && tmpBucket.NextBucket.Key == key {
+			// 需要切断要删除的bucket 对下一个bucket的引用
+			// emm 貌似有内存泄漏
+			tmpBucket.NextBucket = nil
+			tmpBucket.NextBucket.NextBucket = nil
+			fmt.Println(tmpBucket)
+			break
+		}
+
+		tmpBucket = tmpBucket.NextBucket
+	}
+	return true
 }
 
 func (hashtable *Hashtable) Update(key string, newValue interface{}) {
 	mapKey := HashingKey(key)
 	node := FindKeyChainNode(mapKey, KeyChains)
-	tmpNode := node.Bucket
+	if node == nil {
+		log.Fatal("cant find node\n")
+	}
+	bucket := node.Bucket
 	for {
 		// 如果 key相同 找到bucket 相同的key 然后覆盖值
-		if tmpNode.Key == key {
-			tmpNode.Data = newValue
+		if bucket.Key == key {
+			bucket.Data = newValue
 			break
 		}
 
-		tmpNode = tmpNode.NextBucket
+		bucket = bucket.NextBucket
 	}
 }
 
 func (hashtable *Hashtable) Get(key string) interface{} {
 	mapKey := HashingKey(key)
 	node := FindKeyChainNode(mapKey, KeyChains)
-	tmpNode := node.Bucket
-
-
+	if node == nil {
+		log.Fatal("cant find node")
+	}
+	bucket := node.Bucket
 	for {
-		if tmpNode.Key == key {
-			return tmpNode.Data
+		if bucket.Key == key {
+			return bucket.Data
 		}
-		// 这里的指针没有被reset
-		tmpNode = tmpNode.NextBucket
-
-		if tmpNode == nil {
-			fmt.Println("草拟吗")
-		}
+		bucket = bucket.NextBucket
 	}
 	return nil
 }
