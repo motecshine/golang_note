@@ -44,6 +44,8 @@ func main() {
 	h.Add("test2", "value1")
 	h.Update("test2", "value2")
 	h.Add("hhh", "哈哈哈啊")
+	h.Add("hhh", "哈哈s啊")
+	fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
 	h.Delete("hhh")
-	fmt.Println(h, h.Get("test"), h.Get("test2"), h.Get("hhh"))
+	fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
 }

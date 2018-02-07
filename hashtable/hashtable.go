@@ -1,12 +1,11 @@
 package hashtable
 
 import (
-	"hash/fnv"
-	"sync"
 	"fmt"
+	"hash/fnv"
 	"log"
+	"sync"
 )
-
 
 var ChainNodeSize uint32 = 8 // 假设Key单项列表默认的长度是8个Node
 var KeyChains *KeyChainNode
@@ -96,6 +95,11 @@ func (hashtable *Hashtable) Add(key string, value interface{}) {
 	} else {
 		tmpNode := node
 		for {
+			if tmpNode.Bucket.Key == key {
+				hashtable.Update(key, value)
+				break
+			}
+
 			// 如果 key相同 找到bucket 相同的key 然后覆盖值
 			if tmpNode.Bucket.NextBucket == nil {
 				tmpNode.Bucket.NextBucket = &Bucket{
@@ -107,40 +111,54 @@ func (hashtable *Hashtable) Add(key string, value interface{}) {
 				tmpNode.Refcount++
 				break
 			}
+			if tmpNode.Bucket == nil {
+				break
+			}
 			tmpNode.Bucket = tmpNode.Bucket.NextBucket
 		}
 	}
 
 }
 
-func (hashtable *Hashtable) Delete(key string) bool {
+func (hashtable *Hashtable) Delete(key string) {
 	mapKey := HashingKey(key)
 	node := FindKeyChainNode(mapKey, KeyChains)
 	if node == nil {
 		log.Fatal("cant find node\n")
 	}
 	bucket := node.Bucket
-	tmpBucket := bucket
+
 	for {
-		fmt.Println(tmpBucket)
 		// 要删除的bucket在链表的头部
-		if tmpBucket.Key == key {
-			break
+		if bucket.Key == key {
+			// 当前的bucket只有一个，未存在冲突
+			if node.Refcount == 1 {
+				// 释放当前bucket的应用
+				node.Bucket = nil
+				break
+			} else {
+				// 如果Refcount > 2
+				node.Bucket = nil
+				node.Bucket = bucket.NextBucket
+				break
+			}
 		}
 
 		// 要删除的bucket在链表的中间或尾部
-		if tmpBucket.NextBucket != nil && tmpBucket.NextBucket.Key == key {
+		if bucket.NextBucket != nil && bucket.NextBucket.Key == key {
 			// 需要切断要删除的bucket 对下一个bucket的引用
-			// emm 貌似有内存泄漏
+			tmpBucket := bucket.NextBucket
+			bucket.NextBucket = tmpBucket.NextBucket
 			tmpBucket.NextBucket = nil
-			tmpBucket.NextBucket.NextBucket = nil
-			fmt.Println(tmpBucket)
+			fmt.Println(bucket.NextBucket, bucket)
 			break
 		}
-
-		tmpBucket = tmpBucket.NextBucket
+		if bucket.NextBucket == nil {
+			break
+		}
+		bucket = bucket.NextBucket
 	}
-	return true
+	node.Refcount--
 }
 
 func (hashtable *Hashtable) Update(key string, newValue interface{}) {
@@ -156,7 +174,9 @@ func (hashtable *Hashtable) Update(key string, newValue interface{}) {
 			bucket.Data = newValue
 			break
 		}
-
+		if bucket.NextBucket == nil {
+			break
+		}
 		bucket = bucket.NextBucket
 	}
 }
@@ -167,12 +187,19 @@ func (hashtable *Hashtable) Get(key string) interface{} {
 	if node == nil {
 		log.Fatal("cant find node")
 	}
+
 	bucket := node.Bucket
+	if bucket == nil {
+		return nil
+	}
+
 	for {
 		if bucket.Key == key {
 			return bucket.Data
 		}
+		if bucket.NextBucket == nil {
+			return nil
+		}
 		bucket = bucket.NextBucket
 	}
-	return nil
 }
