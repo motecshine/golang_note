@@ -1,7 +1,6 @@
 package hashtable
 
 import (
-	"fmt"
 	"hash/fnv"
 	"log"
 	"sync"
@@ -150,7 +149,6 @@ func (hashtable *Hashtable) Delete(key string) {
 			tmpBucket := bucket.NextBucket
 			bucket.NextBucket = tmpBucket.NextBucket
 			tmpBucket.NextBucket = nil
-			fmt.Println(bucket.NextBucket, bucket)
 			break
 		}
 		if bucket.NextBucket == nil {
