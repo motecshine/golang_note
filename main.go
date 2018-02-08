@@ -49,6 +49,7 @@ func main() {
 	// fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
 	newTree := new(tree.TreeController)
 	newTree.Init(4)
+	newTree.Insert(50)
 	newTree.Insert(5)
 	newTree.Insert(7)
 	newTree.Insert(3)
