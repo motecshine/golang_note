@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"golang_note/hashtable"
+	"golang_note/tree"
 )
 
 func main() {
@@ -39,13 +38,18 @@ func main() {
 	// Link = link.Push(7, Link)
 	// Link = link.Push(8, Link)
 	// link.PrintLink(Link)*/
-	h := new(hashtable.Hashtable)
-	h.Add("test", "value")
-	h.Add("test2", "value1")
-	h.Update("test2", "value2")
-	h.Add("hhh", "哈哈哈啊")
-	h.Add("hhh", "哈哈s啊")
-	fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
-	h.Delete("hhh")
-	fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
+	// h := new(hashtable.Hashtable)
+	// h.Add("test", "value")
+	// h.Add("test2", "value1")
+	// h.Update("test2", "value2")
+	// h.Add("hhh", "哈哈哈啊")
+	// h.Add("hhh", "哈哈s啊")
+	// fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
+	// h.Delete("hhh")
+	// fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
+	newTree := new(tree.TreeController)
+	newTree.Init(4)
+	newTree.Insert(5)
+	newTree.Insert(7)
+	newTree.Insert(3)
 }
