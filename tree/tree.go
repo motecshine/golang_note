@@ -35,9 +35,9 @@ func (t *TreeController) Insert(value int) *TreeController {
 }
 
 func TraverseAndInsert(list, newNode *TreeNode) {
-	if list.data > newNode.data {
+	if list.data >= newNode.data {
 		for {
-			if newNode.data < list.data {
+			if newNode.data <= list.data {
 				if list.leftNode == nil {
 					list.leftNode = newNode
 					break
@@ -53,9 +53,9 @@ func TraverseAndInsert(list, newNode *TreeNode) {
 		}
 	}
 
-	if list.data < newNode.data {
+	if list.data <= newNode.data {
 		for {
-			if newNode.data > list.data {
+			if newNode.data >= list.data {
 				if list.rightNode == nil {
 					list.rightNode = newNode
 					break

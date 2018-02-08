@@ -52,5 +52,6 @@ func main() {
 	newTree.Insert(50)
 	newTree.Insert(5)
 	newTree.Insert(7)
+	newTree.Insert(51)
 	newTree.Insert(3)
 }
