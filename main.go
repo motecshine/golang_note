@@ -1,7 +1,12 @@
 package main
 
 import (
-	"golang_note/tree"
+	"context"
+	"fmt"
+	c "golang_note/context"
+	"log"
+	"net/http"
+	"time"
 )
 
 func main() {
@@ -47,13 +52,30 @@ func main() {
 	// fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
 	// h.Delete("hhh")
 	// fmt.Println(h.Get("test2"), h.Get("test"), h.Get("hhh"))
-	newTree := new(tree.TreeController)
-	newTree.Init(4)
-	newTree.Insert(50)
-	newTree.Insert(5)
-	newTree.Insert(7)
-	newTree.Insert(53)
-	newTree.Insert(52)
-	newTree.Insert(56)
-	newTree.Insert(3)
+	// newTree := new(tree.TreeController)
+	// newTree.Init(4)
+	// newTree.Insert(50)
+	// newTree.Insert(5)
+	// newTree.Insert(7)
+	// newTree.Insert(53)
+	// newTree.Insert(52)
+	// newTree.Insert(56)
+	// newTree.Insert(3)
+
+	// 启动一个http 协程
+	go http.ListenAndServe(":8989", nil)
+	// 获取当前的ctx
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// 模拟新协程 新协程将在三秒后退出
+	go func() {
+		// 睡眠三秒
+		time.Sleep(3 * time.Second)
+		fmt.Println("阻塞结束")
+		// 取消ctx
+		cancel()
+	}()
+
+	log.Println(c.A(ctx))
+	select {}
 }

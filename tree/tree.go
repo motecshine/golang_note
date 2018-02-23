@@ -1,7 +1,5 @@
 package tree
 
-import "fmt"
-
 var root *TreeNode
 
 type TreeNode struct {
@@ -30,7 +28,6 @@ func (t *TreeController) Insert(value int) *TreeController {
 		rightNode: nil,
 	}
 	TraverseAndInsert(root, newNode)
-	fmt.Println(root, root.leftNode, root.rightNode, root.rightNode.rightNode)
 	return t
 }
 
