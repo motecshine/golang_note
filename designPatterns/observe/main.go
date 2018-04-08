@@ -1,5 +1,7 @@
 package main
 
+// RabbitMQ 可以使用这样的方式去处理断线重连 更新channel
+
 import (
 	"fmt"
 	"time"
